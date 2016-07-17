@@ -57,11 +57,15 @@ func doReduce(
 		}
 		//totalArr = append(totalArr, arr...)
 		for _, kv := range arr {
-			keys = append(keys, kv.Key)
+			//keys = append(keys, kv.Key)
 			allMap[kv.Key] = append(allMap[kv.Key], kv.Value)
 		}
 		//os.Remove(file)
 
+	}
+
+	for key := range allMap {
+		keys = append(keys, key)
 	}
 	sort.Strings(keys)
 
