@@ -10,12 +10,34 @@ func (mr *Master) schedule(phase jobPhase) {
 	case mapPhase:
 		ntasks = len(mr.files)
 		nios = mr.nReduce
+
 	case reducePhase:
 		ntasks = mr.nReduce
 		nios = len(mr.files)
 	}
 
 	fmt.Printf("Schedule: %v %v tasks (%d I/Os)\n", ntasks, phase, nios)
+
+	for index := 0; index < ntasks; index++ {
+		workerAddr := <-mr.registerChannel
+		var args DoTaskArgs
+		args.File = mr.files[index]
+		args.JobName = mr.jobName
+		args.NumOtherPhase = nios
+		args.Phase = phase
+		args.TaskNumber = index
+
+		go func() {
+			call(workerAddr, "Worker.DoTask", &args, new(struct{}))
+			mr.registerChannel <- workerAddr
+		}()
+	}
+	// drain the registerChannel
+	if phase == reducePhase {
+		for range mr.workers {
+			<-mr.registerChannel
+		}
+	}
 
 	// All ntasks tasks have to be scheduled on workers, and only once all of
 	// them have been completed successfully should the function return.

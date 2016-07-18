@@ -16,6 +16,7 @@ type Worker struct {
 	name   string
 	Map    func(string, string) []KeyValue
 	Reduce func(string, []string) string
+	//MD nRPC是干嘛的
 	nRPC   int // protected by mutex
 	nTasks int // protected by mutex
 	l      net.Listener
